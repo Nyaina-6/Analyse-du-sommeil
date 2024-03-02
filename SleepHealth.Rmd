@@ -1,0 +1,676 @@
+---
+title: "Analyse du sommeil"
+author: "Aina Lariol"
+date: "2023-11-09"
+output: 
+  rmarkdown::html_document:
+    theme: darkly #autres options de : default, cerulean, journal, flatly, darkly, readable, spacelab, united, cosmo, lumen, paper, sandstone, simplex, and yeti.
+    df_print: kable #df pour dataframe # autre options : paged, tibble, default
+    number_sections: yes
+    toc: yes
+    toc_float:  
+      collapsed: false
+      smooth_scroll: false
+
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{css toc-content, echo = FALSE}
+TOC {
+  right: 300px;
+  margin: 5px 0px 25px 0px;
+}
+
+.main-container {
+    margin-left: 10px;
+}
+
+p {
+  font-size:  14px;
+    line-height : 2em;  
+}
+
+h1 {
+  color: skyblue;
+  font-size:  18px;
+    line-height : 2em;  
+}
+
+h2 {
+  color:#E5DD4F;
+  font-size:  17px;
+    line-height : 2em;  
+}
+
+h3{
+  color:#F082E8;
+  font-size:  16px;
+}
+
+h4 
+{
+  color: #3FD6F0;
+  font-size:  15px;
+}
+b
+{
+  color: #F0968F;
+  font-size:  15px;
+}
+table, th, td {
+  font-size:  12px;
+  width: 100%;
+  background-color:   #254F46;
+  }
+
+```
+
+# Introduction
+Nos jeux de données ici nous permet d'etudier la santé et le sommeil d'une population en fonction de leur activité professionnels, sportifs. 
+On a 12 variables dont 7 variables quantitatives et 5 variables qualitatives. Les variables "Quality.of.sleep" , "Stress.Level" , "Heart.Rate" , "Daily.Steps" sont des variables quantitatives discretes qui peuvent être traités comme des variables qualitatives. Cependant dans notre analyse , on considère ces variables comme des variables quantitatives.  
+
+# Analyse Univariée
+
+```{r}
+df=read.csv("Sleep_health_and_lifestyle_dataset.csv")
+#df=data[,c(2:13)]
+
+#sum(is.na(df))
+#il n'y a pas de variable manquante
+#str(df)
+library(ggplot2)
+
+```
+
+
+```{r}
+
+quanti=df[,c(3,5:8,11:12)]
+```
+
+```{r}
+summary(quanti)
+
+```
+
+L'age minimal de la personne étudiées est 27 ans tandis que la personne plus agée a 59 ans.La moyenne de tous les ages est de 42,18 ans. On observe que 50% des personnes ont entre 35,25 et 50 ans. 
+Le temps du sommeil varie entre 5.8 et 8.5 heures.En moyenne le temps de sommeil est 7.132 heures et la moité des personnes dorment 7,2 heures par nuit
+
+## Les variables quantitatives
+
+<b> Les moyennes de toutes les variables quantitatives </b>
+
+```{r}
+quali=df[,c(2,4,9:10,13)]
+```
+```{r}
+apply(quanti,2,mean)
+```
+```{r}
+#apply(quanti,2,function(x)quantile(x,0.1))#pour le 1er décile
+```
+
+### Valeur des déciles
+
+```{r}
+apply(quanti,2,function(x)quantile(x,probs=c(0.1,0.9)))# le 1er et dernier déciles
+```
+
+10% des personnes moins sportives ne font que 5000 pas par jour alors que les 10% qui pratiquent beaucoup d'exercices physiques font 8000 pas.
+```{r}
+#apply(quanti,2,function(x)quantile(x,probs=seq(0,1,by=0.3)))
+
+```
+```{r}
+#apply(quanti,2,sd)#écart-type
+
+```
+
+```{r}
+#apply(quanti,2,sd)
+```
+
+### Valeur des quartiles
+
+```{r}
+apply(quanti,2,function(x)quantile(x,probs=c(0,0.25,0.75,1)))
+
+```
+#### Qualité de sommeil
+
+Sur un bareme de 10, la plus mauvaise qualité de sommeil observée est de 4, tandis que la meilleure est de 9.Les premiers 25% des personnes assignent entre 4 et 6 ce qui veut dire qu'elles estiment moyennement la qualité de leurs sommeils.Les derniers 25% qui pensent avoir une meilleur qualité de sommeil donnent une note de 8 à 9.
+
+
+
+### Duréé du Sommeil
+
+```{r}
+Sleep_Duration = df$Sleep.Duration 
+par(mfrow=c(1,2))
+boxplot(Sleep_Duration,horizontal=T)
+title(main="Durée du sommeil")
+#hist(Sleep_Duration)
+hist(Sleep_Duration,probability=TRUE) #version courte hist(penf_n,prob=T)
+lines(density(Sleep_Duration),col= "red")
+
+```
+
+On a, ici, 3 modes de population autrement dit il y a 3 sous population de durée de sommeil donc la distribution est asymétrique.La premiere sous population formant 40% des personnes dormnent entre 5.8 à 6.8 heures, 20% des personnes dorment entre 6.8 à 7.3, ils forment la deuxiemme sous population. et enfin les 40% restants formant la troisième population dorment entre 7.3 et 9 heures.En moyenne les gens dorment 7,13 heures.
+
+
+### Rythme Cardiaque
+
+
+```{r}
+Heart_Rate=df$Heart.Rate
+par(mfrow=c(1,2))
+boxplot(Heart_Rate,horizontal=T)
+title(main="Rythme Cardiaque")
+#hist(Heart_Rate)
+hist(Heart_Rate,probability=TRUE) #version courte hist(penf_n,prob=T)
+lines(density(Heart_Rate),col= "green")
+```
+
+On observe que la distribution est asymetrique et elle est bimodale . En effet 50% des personnes ont un rythme cardiaque allant de 68 à 72 battements par minute, ils forment la première sous population. La deuxieme sous population ont 72 à 78 battements par minute, ils representent 25% de la population. Par contre on observe quelques personnes qui ont des battements  de coeur jusqu'à 86 par minutes. 
+
+
+### Age
+
+```{r}
+Age=df$Age
+par(mfrow = c(1,2))
+boxplot(Age,horizontal=T)
+title(main="Age")
+#hist(Age , main="Histogramme de l'Age")
+hist(Age,probability=TRUE ,main="Densité de l'Age") #version courte hist(penf_n,prob=T)
+lines(density(Age),col= "blue")
+
+
+```
+
+L'age moyen observé est de 42ans, la plus jeune etant de 27 ans et la plus vieille 59 ans. Ainsi notre distribution est asymétrique car ceux entre 27 et 45 ans, environ 60%, constituent la première sous population et ceux entre 46 et 60 ans , les 39% restants, constituent la deuxieme sous population.L'age moyen est de 42.18 ans.
+
+```{r}
+#Age=df$Physical.Activity.Level
+#par(mfrow = c(1,2))
+#boxplot(Age,horizontal=T)
+#title(main="Age")
+#hist(Age , main="Histogramme de l'Age")
+#hist(Age,probability=TRUE ,main="Densité de l'Age") #version courte hist(penf_n,prob=T)
+#lines(density(Age),col= "violet")
+
+```
+
+
+## Les variables qualitatives
+
+```{r}
+quali=df[,c(2,4,9:10,13)]
+```
+```{r}
+#as.factor(df$Gender)
+```
+
+```{r}
+#as.factor(df$Occupation)
+```
+
+```{r}
+#as.factor(df$BMI.Category)
+```
+
+```{r}
+#as.factor(df$Blood.Pressure)
+```
+```{r}
+#as.factor(df$Sleep.Disorder)
+```
+
+
+```{r}
+#summary(quali,maxsum = 5)
+```
+### Genre
+```{r}
+#table(df$Gender)
+#table(df$Gender)/nrow(df)
+pourcentages <- round(table(df$Gender)/nrow(df) *100,2)
+#paste(names(pourcentages),":",pourcentages,"%")
+par(mfrow=c(1,2))
+#pie(table(df$Gender),col=c("pink","blue"),labels = paste(names(pourcentages), "\n", pourcentages,"%"))
+#title(main="Genre")
+#barplot(table(df$Gender),col=c("pink","blue"))
+#title(main="Genre")
+library(ggplot2)
+
+ggplot(df, aes(x = Gender , fill=Gender )) +
+    geom_bar(width = 0.4) +
+  geom_text(
+    aes(label = paste0(round(pourcentages[as.character(Gender)], 1), "%")),  
+    stat = "count",  hjust = 1 ) +
+  ggtitle("Genre") +
+  coord_flip() +
+  scale_fill_discrete() +
+  theme(plot.background = element_rect(fill = "white"),  panel.background = element_rect(fill = "white"), panel.grid = element_blank(),   panel.spacing = unit(1, "lines")) 
+    
+```
+
+
+Les personnes de sexe masculin représentent 50,5% et les 49.5 restants sont de femmes.La repartition des classes ici est plus ou moins equilibrée.
+
+
+### Occupations
+
+
+```{r}
+
+
+#table(df$Occupation)
+#table(df$Occupation)/nrow(df)
+pourcentages <- round(table(df$Occupation)/nrow(df) *100,2)
+#paste(names(pourcentages),":",pourcentages,"%")
+
+#pie(table(df$Occupation), col=c("green","blue","purple","pink","red","grey"))
+#barplot(table(df$Occupation), col=c("green","blue","purple","pink","red","grey") ,horiz=TRUE ,las=1  )
+ggplot(df, aes(x = Occupation , fill=Occupation )) +
+    geom_bar() +
+  geom_text(
+    aes(label = paste0(round(pourcentages[as.character(Occupation)], 1), "%")),  
+    stat = "count",  hjust = 0.5) +
+  ggtitle("Occupations") +
+  coord_flip() +
+  scale_fill_discrete()+ theme(plot.background = element_rect(fill = "white"),  panel.background = element_rect(fill = "white"), panel.grid = element_blank(),   panel.spacing = unit(1, "lines")) 
+
+#title(main="Occupations")
+
+```
+
+On observe que les personnes étudiées occupent différents postes dont 19,52% sont des infirmières, suivit des doctors qui representent 18,98% et les ingénieurs occupent 16,84%.Les avocats , eux representent que 12,57% de l'echantillon , les enseignants 10,7% .Seulement de 1% de l'echantillon sont des Scientist ,0.05% des Sales Representative et que 0.27% travaillent comme Managers , .Il y a une grande désequilibre de classe dans cette distribution.
+
+
+### Indice IBM
+
+
+
+```{r}
+#table(df$BMI.Category)
+#table(df$BMI.Category)/nrow(df)
+pourcentages <- round(table(df$BMI.Category)/nrow(df) *100,2)
+#paste(names(pourcentages),":",pourcentages,"%")
+par(mfrow=c(1,2))
+#pie(table(df$BMI.Category),labels = paste(names(pourcentages), "\n", pourcentages, "%") , col = c("green","blue","purple","pink","red") )
+#title(main="BMI")
+#barplot(table(df$BMI.Category), col=c("green","blue","purple","pink","red"),horiz=TRUE ,las=1)
+ggplot(df, aes(x = BMI.Category , fill= BMI.Category )) +
+    geom_bar() +
+  geom_text(
+    aes(label = paste0(round(pourcentages[as.character(BMI.Category)], 1), "%")),  
+    stat = "count",  hjust = 0.5 ) +
+  ggtitle("BMI") +
+  coord_flip() +
+  scale_fill_discrete() + theme(plot.background = element_rect(fill = "white"),  panel.background = element_rect(fill = "white"), panel.grid = element_blank(),   panel.spacing = unit(1, "lines")) 
+```
+
+Plus de la moitié de l'echantillons ,c'est à dire 52.14%,ont une indice IBM normale.Seulement 5.61% sont en normal weight et les 42% restants mettent leurs vies en danger car 39.57% d'entre eux sont en surpoids extreme tandis que moins de 2.67% sont obèses. La distribution est fortement déséquilibrée.
+
+
+### Pression arterielle
+
+
+```{r}
+#table(df$Blood.Pressure)
+#table(df$Blood.Pressure)/nrow(df)
+par(mfrow=c(1,2))
+pourcentages <- round(table(df$Blood.Pressure)/nrow(df) *100,2)
+#paste(names(pourcentages),":", pourcentages,"%")
+#pie(table(df$Blood.Pressure), col=c("grey","blue","purple","pink","red","brown","white","green"))
+#title(main="Tension artérielle")
+#barplot(table(df$Blood.Pressure), col=c("grey","blue","purple","pink","red","brown","white","green"),horiz= TRUE , las =1)
+#title(main="Tension artérielle")
+ggplot(df, aes(x = Blood.Pressure , fill= Blood.Pressure )) +
+    geom_bar( width = 0.3) +
+  geom_text(
+    aes(label = paste0(round(pourcentages[as.character(Blood.Pressure)], 1), "%")),  
+    stat = "count",  hjust = 0.5 ) +
+  ggtitle("Genre") +
+  coord_flip() +
+  scale_fill_discrete() +
+  theme(plot.background = element_rect(fill = "white"),  panel.background = element_rect(fill = "white"), panel.grid = element_blank(),   panel.spacing = unit(1, "lines")) 
+
+```
+
+Environ 26% de personnes ont une tension arterielle de 130/85 , 17.38% des personnes ont 140/95 et 17,38 autres pourcents ont 125/80. Tandis que les autres valeurs sont entre 0.27% et 1% des echantillons l'ont pendant l' études.
+
+
+### Trouble du sommeil
+
+
+```{r}
+#table(df$Sleep.Disorder)
+#table(df$Sleep.Disorder)/nrow(df)
+par(mfrow=c(1,2))
+pourcentages <- round(table(df$Sleep.Disorder)/nrow(df) *100,2)
+#pie(table(df$Sleep.Disorder) , col=c("pink","blue","purple") ,labels = paste(names(pourcentages), "\n", pourcentages, "%"))
+#title(main = "Sleep Disorder")
+#barplot(table(df$Sleep.Disorder), col=c("pink","blue","purple"), horiz = TRUE , las =1)
+#title(main="Sleep.Disorder")
+
+ggplot(df, aes(x = Sleep.Disorder , fill= Sleep.Disorder )) +
+    geom_bar( width = 0.3) +
+  geom_text(
+    aes(label = paste0(round(pourcentages[as.character(Sleep.Disorder)], 1), "%")),  
+    stat = "count",  hjust = 0.7 ) +
+  ggtitle("Genre") +
+  coord_flip() +
+  scale_fill_discrete() +
+  theme(plot.background = element_rect(fill = "white"),  panel.background = element_rect(fill = "white"), panel.grid = element_blank(),   panel.spacing = unit(1, "lines")) 
+```
+
+
+Plus de 58% des personnes observées dorment normalement, tandis que 20% atteinent l'appnée et les 20% restants sont insomniaque donc la distribution est désequilibrée.
+
+
+```{r}
+#barplot(table(df$Gender),col=c("pink","blue"))
+#title(main="Genre")
+#barplot(table(df$Occupation) , col=c("green","blue","purple","pink","red","brown"))
+#title(main="Occupations")
+#barplot(table(df$BMI.Category), col=c("green","blue","purple","pink","red"))
+#title(main="IBM")
+#barplot(table(df$Blood.Pressure), col=c("green","blue","purple","pink","red","brown"))
+#title(main="tension artérielle")
+#barplot(table(df$Sleep.Disorder), col=c("green","blue","purple","pink"))
+#title(main="Sleep.Disorder")
+```
+
+# Analyse Bivariée
+## Etude de 2 variables quantitatives
+### Correlation 
+```{r}
+#corrplot(cor(df$Age,df$Sleep.Duration))
+cor(quanti)
+```
+
+D'après cette matrice on remarque les variables Sleep.Duration et Quality.of.sleep sont liées proportionnellement donc plus la qualité de sommeil augmente, la durée du sommeil augmentera aussi. Parcontre les variables quality.of.Sleep et Stress.level sont inversement proportionnelles car le niveau de stress affecte la qualité de sommeil, Plus on stresse plus on dort mal. On remarque également que il n'y a aucun impact sur la qualité du sommeil , les pas qu'ils ont fait quotidiennement.
+
+
+```{r}
+par(mfrow=c(1,3))
+plot(df$Daily.Steps~df$Heart.Rate)
+plot(df$Quality.of.Sleep~df$Sleep.Duration)
+#plot(df$Quality.of.Sleep~df$Daily.Steps)
+```
+
+On distingue très bien avec les graphiques de dispersion ci-dessus que les <b> les pas journalier </b> et <b> les fréquences cardiaque</b> forment une ligne décroissante ,elles sont donc <i> négativement correlées </i> ,et <b> le niveau d'activité physique </b> et <b> la durée du sommeil </b> eux forment une ligne croissante ou elles sont <i> positivement correlées </i>.
+
+### Dispersion de toutes les variables
+
+```{r}
+#quantii = df[,c(3,5,11:12)]
+
+#plot(quanti)
+```
+
+
+```{r}
+library(corrplot)
+Quant= cor(quanti)
+corrplot(Quant, method ="number")
+```
+
+
+Les 2 coefficients de correlation linéaire les plus importantes: Stress.level et quality of sleep qui est de 0.90, quality of sleep et sleep.duration : 0.88
+
+### Test de Correlation
+
+```{r}
+cor.test(df$Stress.Level,df$Quality.of.Sleep)
+```
+Notre p_value est tres petit ce qui signifie qu'il y a une très forte correlation entre "Stress.Level et Quality.of.sleep, donc il y a une correlation significativeventre les 2 variables. La valeur de la correlation des 2 variables est bien comprise dans l'intervalle de confiance à 95% .Alors les 2 variables sont correlé negativement ce qui implique que si "Stress level" augmente " Quality of sleep diminue et vice versa.
+
+
+```{r}
+cor0.test <- function(x,y,rho0=0,alternative = c("two.sided", "less", "greater")) {
+  n <- length(x)
+  r <- cor(x,y)
+  z <- log((1+r)/(1-r))/2 ##
+  Ez <- log((1+rho0)/(1-rho0))/2 ## la moyenne de Z
+  stat <- (z-Ez)/sqrt(1/(n-3)) ## Z centrée-réduit
+  if (alternative[1] == "two.sided")
+    pvalue <- 2*pnorm(abs(stat),lower.tail = FALSE)
+  if (alternative[1] == "less")
+    pvalue <- pnorm(stat,lower.tail = TRUE) 
+  if (alternative[1] == "greater")
+    pvalue <- pnorm(stat,lower.tail = FALSE)
+  return(list(statistic=stat,p.value=pvalue))
+}
+
+cor0.test (df$Age,df$Quality.of.Sleep,rho0=.8, alt="less") 
+
+```
+La valeur statistic -11.24 motre que le correlation n'est pas proche de zéro , elle est deviée.
+Le p_value des variables Age et Quality of sleep est très proche de zero ce qui indique les 2 variables sont fortement correlées de ce fait la qualité du sommeil varie en fonction de l'âge.
+
+### Regression linéaire
+
+```{r}
+res=lm(df$Quality.of.Sleep~df$Sleep.Duration,data=df)
+plot(df$Quality.of.Sleep~df$Sleep.Duration,data=df)
+abline(res$coef,col=2)
+
+```
+
+La droite de regression croissante ci-dessus confirme l'hypothèse precedente telle que si la qualité du sommeil augmente la durée de sommeil s'améliore aussi mais cela peut dépendre d'autres facteurs.
+
+```{r}
+summary(res)
+```
+
+Les coefficients de correlation des 2 variables Age et Qualité de sommeil sont considérés comme significatifs avec <b> *** </b>.
+
+## Etude des variables qualitative et quantitative
+<b> Gender </b> et <b> Sleep.Duration </b>
+
+```{r}
+library(grid)
+
+aggregate(df$Sleep.Duration,list(x=df$Gender),mean)
+```
+
+Les femmes dorment plus un quart d'heure de plus que les hommes car en moyenne elles dorment 7.22h tandis que les hommes dorment 7.03h,en plus les femmes stressent moins que les hommes avec un niveau de stress de 4.67 par rapport à 6.07 pour les hommes. 
+
+```{r}
+boxplot(df$Quality.of.Sleep~df$Gender,data=df)
+```
+
+On a 2 boites à moustaches partiellement différentes , celle des femmes a la valeur la plus elevée autrement dit les femmes ont  souvent une meillieur qualité de sommeil que les hommes, elles ont en moyenne une note de 8 alors que les hommes ont une note de 7. Les 50% au milieu ont entre 7 à 9 pour les femmes tandis que les hommes ont 6 à 8.Mais les 2 distributions sont asymétriques et indépendantes.
+
+```{r}
+aggregate(df$Quality.of.Sleep,list(x=df$Occupation),mean)
+
+
+
+```
+
+D'après le tableau ci-dessus, les "Engineer" ont la meilleure qualité du sommeil, plus de 8.4/10 suivit des "Lawyer" avec 7.89/10. Les "Sales Reprensentative" ont la moins bonne qualité avec 4/10 et ce sont eux qui stressent le plus avec un niveau de stress de 8 . Avec un niveau de stress de 3.88 on peut dire que les "Engineer" stressent moins dans leurs occupations.
+
+#### Etudes des cas particulier: 
+<b> Etude sur les femmes qui dorment moins de 8 heurs par jours. </b>
+
+
+```{r}
+library(MASS)
+#subset(df,df$Gender=="Female" & df$Sleep.Duration<8)
+
+summary(subset(df,df$Gender=="Female" & df$Sleep.Duration<8),maxsum = 9)
+
+```
+
+Parmis les personnes etudiées , 116 sont des femmes , Celles qui une durée de sommeil inférieur à 8heures ont 42.90 ans en moyennes , la plus jeune étant 29ans et la plus agée 52 ans. La première moitiée des femmes ont entre 29 et 44 ans. Les dernières 25% de ces femmes ont 49.25 à 52 ans.
+En moyenne elles font 7272 pas par jour.Le nombre de pas maximum est de 10000 tandis que le minimum est de 3300 pas.
+
+<b> La durée du sommeil selon leurs occupations </b>
+```{r}
+teacher <- df[df$Occupation == "Teacher",]
+
+lapply(split(teacher$Sleep.Duration,teacher$Occupation ),summary)
+
+```
+
+Pour les "Teacher" , ils dorment en moyenne 6.69heures avec 6.3heures la durée minimale et 7.2 la durée maximale. Les premiers 50% d'entre eux ont donc 6.3 à 6.6 heures de sommeil et les derniers 75% ont entre 6.725 à 7.2heures de sommeil.
+
+<b> Comparaison des données suivant le sexe </b> 
+```{r}
+#lapply(split(quanti$Sleep.Duration,quali$Gender),summary)
+lapply(split(quanti,quali$Gender),summary)
+```
+
+On a fait un résumé statistique suivant les deux sexes.Les hommes sont agés de 37.07 en moyenne , le plus jeune étant de 27 ans et le plus agés est de 49 ans.La première moitiée ont 27 à 38 ans dont 25% ont entre 32 à 38 ans et les 75% restants ont entre 43 ans à 49 ans.Ils ont en moyenne un niveau d'activité physique de 59.2% .Le plus sportif a un niveau de 90% alors que celui qui est le moins a un niveau de 30. Les premiers 25% des hommes ont un niveau entre 45 et 60.et les derniers 25% ont 75 à 90 niveau d'activité physique  
+
+
+```{r}
+#lapply(split(quanti,quali$Gender),var)
+```
+
+<b> Correlation des variables suivant le sexe </b>
+```{r}
+lapply(split(quanti,quali$Gender),cor) 
+#lapply(split(quanti,quali$Gender),sd)
+
+```
+
+Le tableau ci-dessus montre la correlation des variables quantitatives suivants le sexe. 
+Pour les femmes les variables "quality of sleep" et "sleep duration" sont fortement corrélé avec un coefficient de correlation de 0.94 , plus la qualité du sommeil augmente , la durée du someil augmente aussi. Ainsi que les variables "Stress Level et quality of sleep" avec un coefficient de -0.89 donc plus le stress augmente la qualité du sommeil diminue.
+
+Pour les hommes, les variables "physical activity level" et "sleep duration" sont fortement corrélé avec un coefficient de 0.93; et les variables "quality of sleep" et "stress level" comme les femmes .
+Alors , on peut dire que le stress a un grand impact sur le sommeil que ce soit des hommes ou des femmes.
+```{r}
+
+ #boxplot(df$Stress.Level~df$Occupation,data=df)
+
+```
+
+
+
+#### Rapport de correlation Quality of sleep et Gender
+
+```{r}
+#variance totale
+vartot=var(df$Quality.of.Sleep)
+#vartot
+#variance intra-groupe
+#Les variances séparées.
+varFM=lapply(split(df$Quality.of.Sleep,df$Gender),var)
+#Les nombres de filles et de garcons séparés
+nFM= lapply(split(df$Quality.of.Sleep,df$Gender),length)
+
+#variance intra-groupe = moyenne pondérée des variances des groupes.
+varIntra=(nFM$Female*varFM$Female+nFM$Male*varFM$Male)/nrow(df)
+#varIntra
+#variance inter-groupe = variance totale-variance intra-groupe.
+varInter=vartot-varIntra
+#varInter
+#rapport de correlation 
+rapportdecor=sqrt(varInter/vartot)
+varFM
+rapportdecor
+```
+
+On a un indice de 0.287, on ne pourra pas affirmer avec certitude que les 2 variables sont independants, donc on ferra des test pour confirmer le resultat.
+
+### Test
+
+```{r}
+var.test(df$Quality.of.Sleep~df$Gender,data=df)
+```
+Ici on a fixé le risque à 5% , et H0 : la qualité du sommeil est la même quelque soit le genre 
+H1 : la qualité du sommeil est différente quelque soit le genre
+On a obtenu p-value = 0.0008 < 5% donc l'hypothèse H0 est rejetée donc il y a une difference entre la variance des 2 genres
+```{r}
+t.test(df$Quality.of.Sleep~Gender, data=df,var.equal=FALSE)
+
+```
+
+La moyenne de la qualité de sommeil est bien différente entre les 2 genres
+
+### Modelisation
+```{r}
+anov=lm(df$Quality.of.Sleep~df$Gender,data=df)
+summary(anov)
+
+```
+
+Residuals represente la différence entre valeurs observées et predites. La correlation de gender et quality of sleep sont considéré comme significatif car on a 3 etoiles ici
+```{r}
+anov1=aov(df$Sleep.Duration~df$Gender,data=df)
+summary(anov1)
+```
+## Etudes de 2 variables qualitatives
+```{r echo=FALSE}
+
+
+library(dplyr)
+
+library(tidyr)
+library(knitr) 
+library(kableExtra)
+
+```
+```{r}
+df%>%
+  filter(Occupation %in% c("Accountant", "Nurse")) %>%
+  group_by(Occupation, BMI.Category)%>%
+  summarize(n=n())%>%
+  kable()
+```
+
+D'après ce tableau , le nombre de comptables qui ont un BMI.category *normal* est 26, ceux qui ont *normal weight* est de 5 , ceux qui sont *overweight* sont 4. On peut dire les comptables ont pour la plupart une indice IBM normale. Alors que les infirmiers sont en surpoids car 66 infirmiers sont *overweight* et 7 sont entre le normal et le surpoids.
+
+
+<b> Repartition des Occupation suivant le sexe </b>
+
+```{r echo = FALSE}
+library(gplots)
+
+balloonplot(table(df$Gender , df$Occupation), main = "Balloon Plot", label = TRUE)
+
+
+
+```
+
+Parmis les personnes étudiées, on a 36 femmes comptables et un seul comptables,par contre on a que 2 docteurs femmes et 69 hommes. le nombre d'ingénieurs femmes et hommes est un peu équilibré avec 32 femmes et 31 hommes. On a qu'une seule Manager , ,73 Infirmières ainsi de suite . ce qui donne au total 185 femmes et 189 hommes. 
+
+### Test de dépendance
+
+
+```{r}
+chi_test <- chisq.test(table(df$Gender,df$Sleep.Disorder))
+chi_test
+
+# Calcul du coefficient de Cramer
+n <- sum(table(df$Gender,df$Occupation))
+min_dim <- min(dim(table(df$Gender,df$Occupation))) - 1
+Cramer_V <- sqrt(chi_test$statistic / (n * min_dim))
+Cramer_V
+
+# Calcul du coefficient de Tschuprow
+#Tschuprow <- sqrt(chi_test$statistic / (n * min_dim))
+#Tschuprow
+
+
+```
+
+On a toujours un p-value très petit avec la valeur de chi-carré très élévée ce qui suggère le niveau de dépendance des variables Gender et Sleep Disorder qui est assez forte.autrement dit Sleep disorder peut dépend du genre des personnes.
+Ainsi la force d'association entre ces 2 variables est moyennement modéré avec une valeur de 0.38
+
+
+```{r}
+```
+
+
+

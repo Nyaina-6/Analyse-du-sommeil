@@ -1,0 +1,144 @@
+---
+title: "ACP"
+author: "Aina Lariol"
+date: "2024-01-01"
+output: 
+  rmarkdown::html_document:
+    theme: darkly #autres options de : default, cerulean, journal, flatly, darkly, readable, spacelab, united, cosmo, lumen, paper, sandstone, simplex, and yeti.
+    df_print: kable #df pour dataframe # autre options : paged, tibble, default
+    number_sections: yes
+    toc: yes
+    toc_float:  
+      collapsed: false
+      smooth_scroll: false
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{css toc-content, echo = FALSE}
+TOC {
+  right: 300px;
+  margin: 5px 0px 25px 0px;
+}
+
+.main-container {
+    margin-left: 10px;
+}
+
+p {
+  font-size:  14px;
+    line-height : 2em;  
+}
+
+h1 {
+  color: skyblue;
+  font-size:  18px;
+    line-height : 2em;  
+}
+
+h2 {
+  color:#E5DD4F;
+  font-size:  17px;
+    line-height : 2em;  
+}
+
+h3{
+  color:#F082E8;
+  font-size:  16px;
+}
+
+h4 
+{
+  color: #3FD6F0;
+  font-size:  15px;
+}
+b
+{
+  color: #F0968F;
+  font-size:  15px;
+}
+table, th, td {
+  font-size:  12px;
+  width: 100%;
+  background-color:   #254F46;
+  }
+
+```
+# ACP
+<b> Test sur les axes </b>
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(ggplot2)
+df=read.csv("Sleep_health_and_lifestyle_dataset-Copie.csv")
+quanti=df[,c(3,5:8,11)]
+
+acp1<-PCA(quanti,graph=F,ncp=6)
+
+```
+```{r}
+tt=1+2*sqrt((ncol(quanti)-1)/(nrow(quanti)-1))
+tt
+
+which(acp1$eig[,1]>tt)
+```
+
+On retient que l'axe 1 qui representent 76,11 % de l'inertie
+
+```{r}
+S=acp1
+inertie<-acp1$eig[,2]
+
+#fviz_eig(S,choice = "eigenvalue",addlabels=TRUE, ylim = c(-2, 80),xlim=c(-0.5,length(S$eig[,1])))
+fviz_screeplot (S, ylim = c(-.5, 80)) +
+geom_hline (yintercept = c(100/sum(S$eig[,1]),100*tt/sum(S$eig[,1])), linetype = 2, color = c(1,6))+
+annotate("text",x=5,y=22,label="Test--> Karlis_Saporta_Spinaki",size=2.5)+
+annotate("text",x=5,y=15,label=paste("Coude,","Kaiser","-->", "idem"),size=2.3)+
+annotate("text",x=1:length(inertie),y=inertie+2.2,label= paste(round(inertie,2),"%"),size=2.5)+
+annotate("text",x=1:length(inertie)-.2,y=inertie-3,label= round(acp1$eig[,1],2) ,size=2.5,color="brown")+
+annotate("text",x=1:length(inertie)+.1,y=inertie+5.5,label= paste(round(cumsum(inertie),2),"%",sep="") ,size=2.5,color=2)
+```
+
+D'après le figure ci-dessus, les 2 premiers axes sont superieurs à 1 donc on retient ces 2 axes qui représentent 79,14% de l'inertie . On remarque un seul coude sur l'index 4.
+
+```{r}
+
+S <- acp1  
+#par(mar = c(3, 2, 1, 1))
+#par(mfrow = c(1, 2))
+
+
+fviz_pca_var(S, col.var = "cos2", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), labelsize = 3.5)
+
+
+fviz_pca_biplot(S, col.ind = "cos2", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+                geom = "text" , repel = TRUE)
+
+```
+
+Prenons un cos2 >0.7
+L'axe 1 oppose les personnes qui dorment beaucoup,et qui ont un niveau d'activité physique et une qualité de sommeil élevé à des personnes qui  stressent beaucoup avec un HeartRate fort.
+
+Autrement dit 342 et 343 ont une durée de sommeil élevée et une bonne qualité de sommeil, ils stressent moins et ont un Heart.Rate faible tandis que 82 et 81 stressent beaucoup et ont un Heart.Rate elevé donc ils ne dorment pas assez et ont une mauvaise qualité de sommeil.
+
+# Clusters
+
+```{r}
+dist_matrix <- dist(quanti[55:90,], method = "euclidean")
+
+hc <- hclust(dist_matrix, method = "complete")
+
+nb_clusters <- 3
+clusters <- cutree(hc, k = nb_clusters)
+plot(hc, main = "Dendrogramme de la Classification Ascendante Hiérarchique")
+
+# Afficher les résultats des clusters
+table(clusters)
+
+
+```
+
+D'après la classification ascedente Hierarchique ci-dessus on note que la racine de l'arbre est plus élevé que les noeuds restants ce qui montre qu'on a deux groupes distincts et au sein de du deuxieme groupe on distingue 2 sous-groupes différents. C'est à dire le premier groupe regroupe plus de personnes , elles stressent beaucoup et qui ne dorment pas assez.Le deuxieme groupe qui  represente 7 personnes qui dorment plus de 7 heures par nuit donc ils stressent moins par rapport aux autres personnes. Le dernier groupe regroupe qui stressent pas beaucoup et elles ont donc une durée de sommeil moyenne , entre 6 et 7 heures
